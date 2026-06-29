@@ -132,7 +132,7 @@ border-bottom:2px solid #000;padding-bottom:5px;display:flex;justify-content:spa
 <body>
 <header>
   <h1>🏆 FIFA World Cup 2026 — Network Office Pool</h1>
-  <div class="sub">13 participant(s) · updated 2026-06-29 10:25</div>
+  <div class="sub">13 participant(s) · updated 2026-06-29 10:29</div>
   <nav class="tabs" role="tablist">
     <button class="tab active" data-tab="leaderboard">Leaderboard</button>
     <button class="tab" data-tab="group">Group stage</button>
@@ -265,9 +265,9 @@ function _bvTeam(team, picked, actualWinner, flags) {
   const safe = _bvEsc(team);
   return '<div class="'+cls+'" title="'+safe+'">'+_bvFlag(team, flags)+'<span>'+safe+'</span></div>';
 }
-function _bvMatch(round, idx, slots, picked, actualWinner, flags, label, ptsValue) {
+function _bvMatch(round, idx, slots, picked, actualWinner, flags, label, ptsValue, hidePoints) {
   const [a, b] = slots;
-  const earned = (picked && actualWinner && picked === actualWinner) ? ptsValue : 0;
+  const earned = (!hidePoints && picked && actualWinner && picked === actualWinner) ? ptsValue : 0;
   const px = earned ? '<span class="px">+'+earned+'</span>' : '';
   const playedCls = actualWinner ? ' played' : '';
   return '<div class="bmatch'+playedCls+'"><div class="lbl"><span>'+label+'</span>'+px+'</div>'+
@@ -281,8 +281,9 @@ function _bvChampion(team, flags) {
 }
 
 function renderBracket(opts) {
-  const {participant: p, actual, flags, points, labels, r32Fixtures, mountWide, mountCompact} = opts;
+  const {participant: p, actual, flags, points, labels, r32Fixtures, mountWide, mountCompact, hidePoints} = opts;
   if (!p || !p.picks) return;
+  const hp = !!hidePoints;
   const picks = p.picks;
   const r32slots = i => [r32Fixtures[i].home, r32Fixtures[i].away];
   const r16slots = i => [picks.r32[2*i], picks.r32[2*i+1]];
@@ -296,24 +297,24 @@ function renderBracket(opts) {
   // Wide layout: 9 columns
   const cols = [
     {title:"R32", body: [0,1,2,3,4,5,6,7].map(i =>
-      _bvMatch("r32", i, r32slots(i), picks.r32[i], (actual.r32||[])[i], flags, "R32 #"+(i+1), points.r32))},
+      _bvMatch("r32", i, r32slots(i), picks.r32[i], (actual.r32||[])[i], flags, "R32 #"+(i+1), points.r32, hp))},
     {title:"R16", body: [0,1,2,3].map(i =>
-      _bvMatch("r16", i, r16slots(i), picks.r16[i], (actual.r16||[])[i], flags, "R16 #"+(i+1), points.r16))},
+      _bvMatch("r16", i, r16slots(i), picks.r16[i], (actual.r16||[])[i], flags, "R16 #"+(i+1), points.r16, hp))},
     {title:"QF",  body: [0,1].map(i =>
-      _bvMatch("qf", i, qfslots(i), picks.qf[i], (actual.qf||[])[i], flags, "QF #"+(i+1), points.qf))},
-    {title:"SF",  body: [_bvMatch("sf",0,sfslots(0),picks.sf[0],(actual.sf||[])[0],flags,"SF #1",points.sf)]},
+      _bvMatch("qf", i, qfslots(i), picks.qf[i], (actual.qf||[])[i], flags, "QF #"+(i+1), points.qf, hp))},
+    {title:"SF",  body: [_bvMatch("sf",0,sfslots(0),picks.sf[0],(actual.sf||[])[0],flags,"SF #1",points.sf,hp)]},
     {title:"Final", center:true, body: [
-      _bvMatch("final",0,finSlots(),picks.final,actual.final,flags,"Final",points.final),
+      _bvMatch("final",0,finSlots(),picks.final,actual.final,flags,"Final",points.final,hp),
       _bvChampion(picks.final, flags),
-      _bvMatch("third",0,thirdSlots(),picks.third,actual.third,flags,"Third place",points.third),
+      _bvMatch("third",0,thirdSlots(),picks.third,actual.third,flags,"Third place",points.third,hp),
     ]},
-    {title:"SF",  body: [_bvMatch("sf",1,sfslots(1),picks.sf[1],(actual.sf||[])[1],flags,"SF #2",points.sf)]},
+    {title:"SF",  body: [_bvMatch("sf",1,sfslots(1),picks.sf[1],(actual.sf||[])[1],flags,"SF #2",points.sf,hp)]},
     {title:"QF",  body: [2,3].map(i =>
-      _bvMatch("qf", i, qfslots(i), picks.qf[i], (actual.qf||[])[i], flags, "QF #"+(i+1), points.qf))},
+      _bvMatch("qf", i, qfslots(i), picks.qf[i], (actual.qf||[])[i], flags, "QF #"+(i+1), points.qf, hp))},
     {title:"R16", body: [4,5,6,7].map(i =>
-      _bvMatch("r16", i, r16slots(i), picks.r16[i], (actual.r16||[])[i], flags, "R16 #"+(i+1), points.r16))},
+      _bvMatch("r16", i, r16slots(i), picks.r16[i], (actual.r16||[])[i], flags, "R16 #"+(i+1), points.r16, hp))},
     {title:"R32", body: [8,9,10,11,12,13,14,15].map(i =>
-      _bvMatch("r32", i, r32slots(i), picks.r32[i], (actual.r32||[])[i], flags, "R32 #"+(i+1), points.r32))},
+      _bvMatch("r32", i, r32slots(i), picks.r32[i], (actual.r32||[])[i], flags, "R32 #"+(i+1), points.r32, hp))},
   ];
   if (mountWide) {
     mountWide.innerHTML = cols.map(c => {
@@ -331,15 +332,15 @@ function renderBracket(opts) {
       '<section><h4>'+labels[r]+'<span class="pts">'+earnedR(r)+'/'+totalMaxR(r)+' pts</span></h4>'+body+'</section>';
     const html = [
       sec('r32', [...Array(16).keys()].map(i =>
-        _bvMatch("r32",i,r32slots(i),picks.r32[i],(actual.r32||[])[i],flags,"Match "+(i+1),points.r32)).join('')),
+        _bvMatch("r32",i,r32slots(i),picks.r32[i],(actual.r32||[])[i],flags,"Match "+(i+1),points.r32,hp)).join('')),
       sec('r16', [...Array(8).keys()].map(i =>
-        _bvMatch("r16",i,r16slots(i),picks.r16[i],(actual.r16||[])[i],flags,"Match "+(i+1),points.r16)).join('')),
+        _bvMatch("r16",i,r16slots(i),picks.r16[i],(actual.r16||[])[i],flags,"Match "+(i+1),points.r16,hp)).join('')),
       sec('qf', [...Array(4).keys()].map(i =>
-        _bvMatch("qf",i,qfslots(i),picks.qf[i],(actual.qf||[])[i],flags,"Match "+(i+1),points.qf)).join('')),
+        _bvMatch("qf",i,qfslots(i),picks.qf[i],(actual.qf||[])[i],flags,"Match "+(i+1),points.qf,hp)).join('')),
       sec('sf', [...Array(2).keys()].map(i =>
-        _bvMatch("sf",i,sfslots(i),picks.sf[i],(actual.sf||[])[i],flags,"Match "+(i+1),points.sf)).join('')),
-      sec('third', _bvMatch("third",0,thirdSlots(),picks.third,actual.third,flags,"Third place",points.third)),
-      sec('final', _bvMatch("final",0,finSlots(),picks.final,actual.final,flags,"Final",points.final) +
+        _bvMatch("sf",i,sfslots(i),picks.sf[i],(actual.sf||[])[i],flags,"Match "+(i+1),points.sf,hp)).join('')),
+      sec('third', _bvMatch("third",0,thirdSlots(),picks.third,actual.third,flags,"Third place",points.third,hp)),
+      sec('final', _bvMatch("final",0,finSlots(),picks.final,actual.final,flags,"Final",points.final,hp) +
                    _bvChampion(picks.final, flags)),
     ].join('');
     mountCompact.innerHTML = html;
@@ -417,6 +418,7 @@ renderBracket({
   r32Fixtures: DATA.r32Fixtures,
   mountWide: document.getElementById('kActualWide'),
   mountCompact: document.getElementById('kActualCompact'),
+  hidePoints: true,
 });
 attachBracketModeToggle(document.getElementById('kActualView'));
 
