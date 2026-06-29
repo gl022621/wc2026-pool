@@ -91,6 +91,9 @@ font:600 12px inherit;padding:6px 12px;border-radius:6px;cursor:pointer}
 .bracketview .col.center{flex:1.15 1.15 0;justify-content:flex-start;gap:18px;padding-top:24px}
 .bracketview .bmatch{background:#fff;border:1px solid #e5e9f0;border-radius:7px;overflow:hidden;
 box-shadow:0 1px 3px rgba(0,0,0,.06);min-width:0}
+.bracketview .bmatch.played{border-color:#333}
+.bracketview .bmatch.played .lbl{background:#222;color:#fff;border-bottom-color:#333}
+.bracketview .bmatch.played .lbl .px{color:#6fcf6f}
 .bracketview .bmatch .lbl{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
 padding:3px 6px;background:#f1f4f9;border-bottom:1px solid #e5e9f0;display:flex;justify-content:space-between}
 .bracketview .bmatch .lbl .px{font-weight:700;color:#2e7d32}
@@ -129,7 +132,7 @@ border-bottom:2px solid #000;padding-bottom:5px;display:flex;justify-content:spa
 <body>
 <header>
   <h1>🏆 FIFA World Cup 2026 — Network Office Pool</h1>
-  <div class="sub">13 participant(s) · updated 2026-06-29 09:08</div>
+  <div class="sub">13 participant(s) · updated 2026-06-29 09:37</div>
   <nav class="tabs" role="tablist">
     <button class="tab active" data-tab="leaderboard">Leaderboard</button>
     <button class="tab" data-tab="group">Group stage</button>
@@ -266,7 +269,8 @@ function _bvMatch(round, idx, slots, picked, actualWinner, flags, label, ptsValu
   const [a, b] = slots;
   const earned = (picked && actualWinner && picked === actualWinner) ? ptsValue : 0;
   const px = earned ? '<span class="px">+'+earned+'</span>' : '';
-  return '<div class="bmatch"><div class="lbl"><span>'+label+'</span>'+px+'</div>'+
+  const playedCls = actualWinner ? ' played' : '';
+  return '<div class="bmatch'+playedCls+'"><div class="lbl"><span>'+label+'</span>'+px+'</div>'+
          _bvTeam(a, picked, actualWinner, flags) +
          _bvTeam(b, picked, actualWinner, flags) + '</div>';
 }
@@ -406,7 +410,7 @@ attachBracketModeToggle(document.getElementById('kBracketView'));
 // Render the actual knockout bracket (real tournament results)
 renderBracket({
   participant: {picks: DATA.actualKnockout, total: 0},
-  actual: {},
+  actual: DATA.actualKnockout,
   flags: DATA.flags,
   points: DATA.knockoutPoints,
   labels: DATA.knockoutLabels,
